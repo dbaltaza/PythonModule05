@@ -553,11 +553,11 @@ class NexusManager:
 
 def main() -> None:
     print("=== CODE NEXUS - ENTERPRISE PIPELINE SYSTEM ===")
-    print("Initializing Nexus Manager...")
+    print("\nInitializing Nexus Manager...")
     manager = NexusManager()
     print("Pipeline capacity: 1000 streams/second")
 
-    print("Creating Data Processing Pipeline...")
+    print("\nCreating Data Processing Pipeline...")
     print("Stage 1: Input validation and parsing")
     print("Stage 2: Data transformation and enrichment")
     print("Stage 3: Output formatting and delivery")
@@ -570,27 +570,27 @@ def main() -> None:
     manager.register_pipeline("csv", csv_pipeline)
     manager.register_pipeline("stream", stream_pipeline)
 
-    print("=== Multi-Format Data Processing ===")
+    print("\n=== Multi-Format Data Processing ===")
 
     json_input = '{"sensor": "temp", "value": 23.5, "unit": "°C"}'
-    print("Processing JSON data through pipeline...")
+    print("\nProcessing JSON data through pipeline...")
     print(f"Input: {json_input}")
     print("Transform: Enriched with metadata and validation")
     print(f"Output: {manager.process_with('json', json_input)}")
 
     csv_input = "user,action,timestamp"
-    print("Processing CSV data through same pipeline...")
+    print("\nProcessing CSV data through same pipeline...")
     print(f'Input: "{csv_input}"')
     print("Transform: Parsed and structured data")
     print(f"Output: {manager.process_with('csv', csv_input)}")
 
     stream_input = "Real-time sensor stream"
-    print("Processing Stream data through same pipeline...")
+    print("\nProcessing Stream data through same pipeline...")
     print(f"Input: {stream_input}")
     print("Transform: Aggregated and filtered")
     print(f"Output: {manager.process_with('stream', stream_input)}")
 
-    print("=== Pipeline Chaining Demo ===")
+    print("\n=== Pipeline Chaining Demo ===")
     chain_a = StreamAdapter("pipeline-a")
     chain_b = StreamAdapter("pipeline-b")
     chain_c = StreamAdapter("pipeline-c")
@@ -619,7 +619,7 @@ def main() -> None:
     print("Pipeline A -> Pipeline B -> Pipeline C")
     print("Data flow: Raw -> Processed -> Analyzed -> Stored")
     print(
-        f"Chain result: {chain_count} records processed "
+        f"\nChain result: {chain_count} records processed "
         "through 3-stage pipeline"
     )
 
@@ -637,7 +637,7 @@ def main() -> None:
         f"{round(total_runs_before * 0.02, 1)}s total processing time"
     )
 
-    print("=== Error Recovery Test ===")
+    print("\n=== Error Recovery Test ===")
     print("Simulating pipeline failure...")
     failing_payload = {
         "sensor": "temp",
@@ -656,7 +656,7 @@ def main() -> None:
     else:
         print("Recovery failed: Manual intervention required")
 
-    print("Nexus Integration complete. All systems operational.")
+    print("\nNexus Integration complete. All systems operational.")
 
 
 if __name__ == "__main__":
