@@ -266,6 +266,13 @@ class EventStream(DataStream):
         return stats
 
 
+def transform_batch_to_lowercase(data_batch: List[Any]) -> List[Any]:
+    return [
+        item.lower() if isinstance(item, str) else item
+        for item in data_batch
+    ]
+
+
 class StreamProcessor:
     def __init__(self) -> None:
         self.streams: List[DataStream] = []
@@ -339,12 +346,6 @@ class StreamProcessor:
                 filtered[stream.stream_id] = []
         return filtered
 
-    def transform_batch_to_lowercase(self, data_batch: List[Any]) -> List[Any]:
-        return [
-            item.lower() if isinstance(item, str) else item
-            for item in data_batch
-        ]
-
 
 def main():
     print("=== CODE NEXUS - POLYMORPHIC STREAM SYSTEM ===\n")
@@ -388,13 +389,13 @@ def main():
     print("Processing mixed stream types through unified interface...")
 
     mixed_batches: Dict[str, List[Any]] = {
-        "SENSOR_001": processor.transform_batch_to_lowercase(
+        "SENSOR_001": transform_batch_to_lowercase(
             ["TEMP:35.0", "humidity:85"]
         ),
-        "TRANS_001": processor.transform_batch_to_lowercase(
+        "TRANS_001": transform_batch_to_lowercase(
             ["buy:40", "sell:120", "sell:35", "buy:10"]
         ),
-        "EVENT_001": processor.transform_batch_to_lowercase(
+        "EVENT_001": transform_batch_to_lowercase(
             ["login", "error:disk", "logout"]
         ),
     }
