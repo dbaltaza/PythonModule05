@@ -50,6 +50,43 @@ class InputStage:
         raise ValueError("Unsupported input type")
 
 
+def _transform_json_record(item: Any) -> Dict[str, Any]:
+    if not isinstance(item, dict):
+        raise ValueError("JSON record must be a dict")
+
+    record: Dict[str, Any] = {key: value for key, value in item.items()}
+    value_raw: Any = record.get("value")
+    if value_raw is not None:
+        value_num = float(value_raw)
+        record["value"] = value_num
+        record["status"] = (
+            "Normal range" if 18.0 <= value_num <= 28.0 else "Out of range"
+        )
+    record["validated"] = True
+    return record
+
+
+def _transform_csv_record(item: Any) -> Dict[str, Any]:
+    if not isinstance(item, dict):
+        return {"raw": str(item), "validated": True}
+    record: Dict[str, Any] = {
+        key: str(value).strip() for key, value in item.items()
+    }
+    record["validated"] = True
+    return record
+
+
+def _transform_stream_record(item: Any) -> Dict[str, Any]:
+    if isinstance(item, dict):
+        reading_raw: Any = item.get("reading", 0.0)
+        unit: str = str(item.get("unit", "C"))
+    else:
+        reading_raw = item
+        unit = "C"
+    reading = float(reading_raw)
+    return {"reading": reading, "unit": unit, "validated": True}
+
+
 class TransformStage:
     def process(self, data: Any) -> Any:
         if not isinstance(data, dict):
@@ -70,15 +107,15 @@ class TransformStage:
 
         if payload_format == "json":
             data["records"] = [
-                self._transform_json_record(item) for item in records
+                _transform_json_record(item) for item in records
             ]
         elif payload_format == "csv":
             data["records"] = [
-                self._transform_csv_record(item) for item in records
+                _transform_csv_record(item) for item in records
             ]
         elif payload_format == "stream":
             data["records"] = [
-                self._transform_stream_record(item) for item in records
+                _transform_stream_record(item) for item in records
             ]
         else:
             data["records"] = [
@@ -97,40 +134,6 @@ class TransformStage:
         }
         data["meta"]["transformed"] = True
         return data
-
-    def _transform_json_record(self, item: Any) -> Dict[str, Any]:
-        if not isinstance(item, dict):
-            raise ValueError("JSON record must be a dict")
-
-        record: Dict[str, Any] = {key: value for key, value in item.items()}
-        value_raw: Any = record.get("value")
-        if value_raw is not None:
-            value_num = float(value_raw)
-            record["value"] = value_num
-            record["status"] = (
-                "Normal range" if 18.0 <= value_num <= 28.0 else "Out of range"
-            )
-        record["validated"] = True
-        return record
-
-    def _transform_csv_record(self, item: Any) -> Dict[str, Any]:
-        if not isinstance(item, dict):
-            return {"raw": str(item), "validated": True}
-        record: Dict[str, Any] = {
-            key: str(value).strip() for key, value in item.items()
-        }
-        record["validated"] = True
-        return record
-
-    def _transform_stream_record(self, item: Any) -> Dict[str, Any]:
-        if isinstance(item, dict):
-            reading_raw: Any = item.get("reading", 0.0)
-            unit: str = str(item.get("unit", "C"))
-        else:
-            reading_raw = item
-            unit = "C"
-        reading = float(reading_raw)
-        return {"reading": reading, "unit": unit, "validated": True}
 
 
 class BackupTransformStage:
