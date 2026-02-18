@@ -110,7 +110,10 @@ class SensorStream(DataStream):
     def filter_data(
         self, data_batch: List[Any], criteria: Optional[str] = None
     ) -> List[Any]:
-        base_filtered = super().filter_data(data_batch, criteria if criteria != "high-priority" else None)
+        base_filtered = super().filter_data(
+            data_batch,
+            criteria if criteria != "high-priority" else None,
+        )
         if criteria != "high-priority":
             return base_filtered
 
@@ -124,7 +127,10 @@ class SensorStream(DataStream):
             except ValueError:
                 continue
             key = key.strip().lower()
-            if (key == "temp" and value >= 30.0) or (key == "humidity" and value >= 80.0):
+            if (
+                (key == "temp" and value >= 30.0)
+                or (key == "humidity" and value >= 80.0)
+            ):
                 filtered.append(item)
         return filtered
 
@@ -180,7 +186,10 @@ class TransactionStream(DataStream):
     def filter_data(
         self, data_batch: List[Any], criteria: Optional[str] = None
     ) -> List[Any]:
-        base_filtered = super().filter_data(data_batch, criteria if criteria != "high-priority" else None)
+        base_filtered = super().filter_data(
+            data_batch,
+            criteria if criteria != "high-priority" else None,
+        )
         if criteria != "high-priority":
             return base_filtered
 
@@ -201,6 +210,7 @@ class TransactionStream(DataStream):
         stats = super().get_stats()
         stats["net_flow"] = self.net_flow
         return stats
+
 
 class EventStream(DataStream):
     def __init__(self, stream_id: str) -> None:
@@ -238,10 +248,17 @@ class EventStream(DataStream):
     def filter_data(
         self, data_batch: List[Any], criteria: Optional[str] = None
     ) -> List[Any]:
-        base_filtered = super().filter_data(data_batch, criteria if criteria != "high-priority" else None)
+        base_filtered = super().filter_data(
+            data_batch,
+            criteria if criteria != "high-priority" else None,
+        )
         if criteria != "high-priority":
             return base_filtered
-        return [item for item in base_filtered if isinstance(item, str) and "error" in item.lower()]
+        return [
+            item
+            for item in base_filtered
+            if isinstance(item, str) and "error" in item.lower()
+        ]
 
     def get_stats(self) -> Dict[str, Union[str, int, float]]:
         stats = super().get_stats()
@@ -258,25 +275,37 @@ class StreamProcessor:
             raise TypeError("Only DataStream subclasses can be registered")
         self.streams.append(stream)
 
-    def process_all_batches(self, stream_batches: Dict[str, List[Any]]) -> List[str]:
+    def process_all_batches(
+        self, stream_batches: Dict[str, List[Any]]
+    ) -> List[str]:
         results: List[str] = []
         for stream in self.streams:
             try:
                 batch = stream_batches.get(stream.stream_id, [])
                 if not isinstance(batch, list):
                     raise TypeError("Batch must be a list")
-                result = stream.process_batch(batch)
+                stream.process_batch(batch)
 
                 if isinstance(stream, SensorStream):
-                    processed_count = len([item for item in batch if isinstance(item, str)])
+                    processed_count = len(
+                        [item for item in batch if isinstance(item, str)]
+                    )
                     label = "Sensor data"
                     noun = "readings"
                 elif isinstance(stream, TransactionStream):
-                    processed_count = len([item for item in batch if isinstance(item, str) and ":" in item])
+                    processed_count = len(
+                        [
+                            item
+                            for item in batch
+                            if isinstance(item, str) and ":" in item
+                        ]
+                    )
                     label = "Transaction data"
                     noun = "operations"
                 elif isinstance(stream, EventStream):
-                    processed_count = len([item for item in batch if isinstance(item, str)])
+                    processed_count = len(
+                        [item for item in batch if isinstance(item, str)]
+                    )
                     label = "Event data"
                     noun = "events"
                 else:
@@ -284,19 +313,26 @@ class StreamProcessor:
                     label = f"{stream.stream_type} data"
                     noun = "items"
 
-                results.append(f"- {label}: {processed_count} {noun} processed")
+                summary = f"- {label}: {processed_count} {noun} processed"
+                results.append(summary)
             except Exception as e:
                 stream.failed_items += 1
                 stream.last_error = str(e)
                 results.append(f"- {stream.stream_id} failed: {e}")
         return results
 
-    def filter_all(self, stream_batches: Dict[str, List[Any]], criteria: Optional[str]) -> Dict[str, List[Any]]:
+    def filter_all(
+        self,
+        stream_batches: Dict[str, List[Any]],
+        criteria: Optional[str],
+    ) -> Dict[str, List[Any]]:
         filtered: Dict[str, List[Any]] = {}
         for stream in self.streams:
             try:
                 batch = stream_batches.get(stream.stream_id, [])
-                filtered[stream.stream_id] = stream.filter_data(batch, criteria)
+                filtered[stream.stream_id] = stream.filter_data(
+                    batch, criteria
+                )
             except Exception as e:
                 stream.failed_items += 1
                 stream.last_error = str(e)
@@ -304,7 +340,10 @@ class StreamProcessor:
         return filtered
 
     def transform_batch_to_lowercase(self, data_batch: List[Any]) -> List[Any]:
-        return [item.lower() if isinstance(item, str) else item for item in data_batch]
+        return [
+            item.lower() if isinstance(item, str) else item
+            for item in data_batch
+        ]
 
 
 def main():
@@ -313,21 +352,30 @@ def main():
     print("Initializing Sensor Stream...")
     sensor_data = ["temp:22.5", "humidity:65", "pressure:1013"]
     sensor_stream = SensorStream("SENSOR_001")
-    print(f"Stream ID: {sensor_stream.stream_id}, Type: {sensor_stream.stream_type}")
+    print(
+        f"Stream ID: {sensor_stream.stream_id}, "
+        f"Type: {sensor_stream.stream_type}"
+    )
     print(f"Processing sensor batch: {format_batch(sensor_data)}")
     print(sensor_stream.process_batch(sensor_data))
 
     print("\nInitializing Transaction Stream...")
     transaction_data = ["buy:100", "sell:150", "buy:75"]
     transaction_stream = TransactionStream("TRANS_001")
-    print(f"Stream ID: {transaction_stream.stream_id}, Type: {transaction_stream.stream_type}")
+    print(
+        f"Stream ID: {transaction_stream.stream_id}, "
+        f"Type: {transaction_stream.stream_type}"
+    )
     print(f"Processing transaction batch: {format_batch(transaction_data)}")
     print(transaction_stream.process_batch(transaction_data))
 
     print("\nInitializing Event Stream...")
     event_data = ["login", "error", "logout"]
     event_stream = EventStream("EVENT_001")
-    print(f"Stream ID: {event_stream.stream_id}, Type: {event_stream.stream_type}")
+    print(
+        f"Stream ID: {event_stream.stream_id}, "
+        f"Type: {event_stream.stream_type}"
+    )
     print(f"Processing event batch: {format_batch(event_data)}")
     print(event_stream.process_batch(event_data))
 
@@ -340,9 +388,15 @@ def main():
     print("Processing mixed stream types through unified interface...")
 
     mixed_batches: Dict[str, List[Any]] = {
-        "SENSOR_001": processor.transform_batch_to_lowercase(["TEMP:35.0", "humidity:85"]),
-        "TRANS_001": processor.transform_batch_to_lowercase(["buy:40", "sell:120", "sell:35", "buy:10"]),
-        "EVENT_001": processor.transform_batch_to_lowercase(["login", "error:disk", "logout"]),
+        "SENSOR_001": processor.transform_batch_to_lowercase(
+            ["TEMP:35.0", "humidity:85"]
+        ),
+        "TRANS_001": processor.transform_batch_to_lowercase(
+            ["buy:40", "sell:120", "sell:35", "buy:10"]
+        ),
+        "EVENT_001": processor.transform_batch_to_lowercase(
+            ["login", "error:disk", "logout"]
+        ),
     }
 
     print("\nBatch 1 Results:")
@@ -359,6 +413,7 @@ def main():
         + ("" if large_tx == 1 else "s")
     )
     print("\nAll streams processed successfully. Nexus throughput optimal.")
+
 
 if __name__ == "__main__":
     main()
