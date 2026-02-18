@@ -347,7 +347,7 @@ class StreamProcessor:
         return filtered
 
 
-def main():
+def main() -> None:
     print("=== CODE NEXUS - POLYMORPHIC STREAM SYSTEM ===\n")
 
     print("Initializing Sensor Stream...")
