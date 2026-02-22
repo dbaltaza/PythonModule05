@@ -31,7 +31,7 @@ class DataStream(ABC):
             item for item in data_batch if criteria_text in str(item).lower()
         ]
 
-    def get_stats(self) -> Dict[str, Union[str, int, float]]:
+    def get_stats(self) -> Dict[str, Union[str, float]]:
         return {
             "stream_id": self.stream_id,
             "stream_type": self.stream_type,
